@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.model
 
 import junit.framework._
@@ -5,14 +13,6 @@ import junit.framework.Assert._
 import java.util.Calendar._
 import java.text.SimpleDateFormat
 import core.util.TestingEnvironment
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 30.05.2010
- * Time: 2:07:37
- * To change this template use File | Settings | File Templates.
- */
 
 class WorkingCalendarTest extends TestCase("WorkingCalendar") with TestingEnvironment {
 

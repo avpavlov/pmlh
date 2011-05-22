@@ -1,14 +1,14 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.builder
 
 import core.model.{Resource, Period, Activity}
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 05.06.2010
- * Time: 2:55:49
- * To change this template use File | Settings | File Templates.
- */
 
 case class Allocation(val activity: Activity, val resource: Resource, val interval: Period)
 class Schedule(val allocations:List[Allocation]) {

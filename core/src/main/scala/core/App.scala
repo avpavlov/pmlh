@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core;
 
 /**

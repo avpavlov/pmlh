@@ -1,16 +1,16 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.model
 
 import java.util.{Calendar, Date}
 import java.util.Calendar._
 import annotation.tailrec
-
-/**
- * Created by IntelliJ IDEA.
- * User: Hp
- * Date: 27.05.2010
- * Time: 23:48:43
- * To change this template use File | Settings | File Templates.
- */
 
 class WorkingCalendar(val base: WorkingCalendar = null,
                       val hoursPerDay: Int = 8,

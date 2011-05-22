@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.builder
 
 import junit.framework.TestCase
@@ -6,14 +14,6 @@ import junit.framework._
 
 import Assert._
 import core.model._
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 05.06.2010
- * Time: 2:54:40
- * To change this template use File | Settings | File Templates.
- */
 
 class ScheduleTest extends TestCase("Schedule") with TestingEnvironment {
 

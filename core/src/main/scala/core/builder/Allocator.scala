@@ -1,17 +1,16 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.builder
 
 import java.util.{Calendar, Date}
 import annotation.tailrec
 import core.model._
-
-/**
- * Created by IntelliJ IDEA.
- * User: Hp
- * Date: 27.05.2010
- * Time: 23:48:43
- * To change this template use File | Settings | File Templates.
- */
-
 
 class Allocator(plan: Plan, allocations:List[Allocation]) {
 

@@ -1,16 +1,16 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.model
 
 import core.util.TestingEnvironment
 import junit.framework._
 import junit.framework.Assert._
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 03.06.2010
- * Time: 0:26:47
- * To change this template use File | Settings | File Templates.
- */
 
 class PeriodTest extends TestCase("Period") with TestingEnvironment {
 

@@ -1,12 +1,12 @@
-package core.model
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 03.06.2010
- * Time: 0:18:50
- * To change this template use File | Settings | File Templates.
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
  */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+package core.model
 
 abstract class Condition
 abstract class DependsOn(val activity:Activity) extends Condition

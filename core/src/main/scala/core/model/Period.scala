@@ -1,14 +1,14 @@
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
+/*
+ * Copyright (c) Alexander Pavlov 2010-2011.
+ */
+
 package core.model
 
 import scala.math._
-
-/**
- * Created by IntelliJ IDEA.
- * User: pav
- * Date: 03.06.2010
- * Time: 0:40:36
- * To change this template use File | Settings | File Templates.
- */
 
 case class Period(val start: Time, val finish: Time, val hours: Int) extends Ordered[Period] {
   private[Period] def contains(t: Time) = t >= start && t <= finish && hours > 0;
