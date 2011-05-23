@@ -11,9 +11,29 @@ package core.util
 import java.text.SimpleDateFormat
 import java.util.Calendar._
 import core.model._
+import java.util.Date
+import core.builder.Allocation
 
 trait TestingEnvironment {
   implicit def wrapString(format:String) = new SimpleDateFormat(format)
+  implicit def wrapHours(h:Int) = new {
+    def hours = h
+  }
+  implicit def wrapDate(date:Date) = new {
+    def at (hours:Int) = Time(date,hours)
+  }
+  implicit def wrapActivity(name:String) = new Tuple1[String](name) {
+    def needs (h:Int) = new Tuple2[String,Int](name,h) {
+      def of (resourceType:ResourceType) = new Activity(name,h,resourceType,Nil)
+    }
+  }
+  implicit def wrapResource(resource:Resource) = new {
+    def implements (a:Activity) = new {
+      def from(t:Time) = new {
+        def during(h:Int) = new Allocation(a,resource,default.getPeriod(t,h))
+      }
+    }
+  }
 
   val mon24 = "dd/MM/yyyy".parse("24/05/2010")
   val tue25 = "dd/MM/yyyy".parse("25/05/2010")
