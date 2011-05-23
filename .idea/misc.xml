@@ -68,5 +68,8 @@
   <component name="SvnBranchConfigurationManager">
     <option name="mySupportsUserInfoFilter" value="true" />
   </component>
+  <component name="TaskProjectConfiguration">
+    <server type="Redmine" url="https://redmine.texunatech.com" />
+  </component>
 </project>
 
