@@ -37,7 +37,7 @@ import core.model._
 
 class AllocatorTest extends TestCase("Allocator") with TestingEnvironment {
 
-  def testScheduleActivity {
+  def testBuildFlatList {
     fail("to be implemented")
   }
 

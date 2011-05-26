@@ -28,55 +28,100 @@
 
 package core.model
 
-import junit.framework.TestCase
 import core.util.TestingEnvironment
 import junit.framework._
-
-import Assert._
-import core.model._
+import scala.Some
+import junit.framework.Assert._
 
 class ActivityTest extends TestCase("Activity") with TestingEnvironment {
 
-  val a1 = new Activity("a1",1,developer,List(CannotBeShared(),MustStartOn(wed02_0)))
-  val a2 = new Activity("a2",1,developer,List(FinishNoEarlierThan(a1),MustStartOn(wed02_0)))
-  val a3 = new Activity("a3",1,developer,List(FinishNoEarlierThan(a1),MustStartOn(wed02_0),MustStartOn(mon24_0)))
-  val a4 = new Activity("a4",1,developer,List(FinishNoEarlierThan(a1)))
-  val a5 = new Activity("a5",1,developer,Nil)
+  def testCannotBeShared {
+    def cannotBeShared(conditions:Condition*) = new Activity("",1,tester,conditions.toList).cannotBeShared
 
-  def testExpectedStartDate {
-    assertEquals(Some(wed02_0), a1.expectedStartTime)
-    assertEquals(Some(wed02_0), a2.expectedStartTime)
-    assertEquals(Some(mon24_0), a3.expectedStartTime)
-    assertEquals(None, a4.expectedStartTime)
-    assertEquals(None, a5.expectedStartTime)
+    assertEquals(true, cannotBeShared(CannotBeShared,MustStartOn(wed02_0),CannotBeShared))
+    assertEquals(true, cannotBeShared(MustStartOn(wed02_0),CannotBeShared))
+    assertEquals(false, cannotBeShared(MustStartOn(wed02_0)))
+    assertEquals(true, cannotBeShared(CannotBeShared))
+    assertEquals(false, cannotBeShared())
   }
-  
+
+  def testMustStartOn {
+    def mustStartOn(conditions:Condition*) = new Activity("",1,tester,conditions.toList).mustStartOn
+
+    assertEquals(Some(wed02_0), mustStartOn(CannotBeShared,MustStartOn(wed02_0),CannotBeShared,ShouldStartAfter(mon24_0)))
+    assertEquals(Some(mon24_0), mustStartOn(MustStartOn(wed02_0),CannotBeShared,MustStartOn(mon24_0)))
+    assertEquals(Some(wed02_0), mustStartOn(MustStartOn(wed02_0)))
+    assertEquals(None, mustStartOn(CannotBeShared))
+    assertEquals(None, mustStartOn())
+  }
+
+  def testShouldStartAfter {
+    def shouldStartAfter(conditions:Condition*) = new Activity("",1,tester,conditions.toList).shouldStartAfter
+
+    assertEquals(Some(mon24_0), shouldStartAfter(CannotBeShared,MustStartOn(wed02_0),CannotBeShared,ShouldStartAfter(mon24_0)))
+    assertEquals(Some(wed02_0), shouldStartAfter(ShouldStartAfter(wed02_0),CannotBeShared,ShouldStartAfter(mon24_0)))
+    assertEquals(Some(wed02_0), shouldStartAfter(ShouldStartAfter(wed02_0)))
+    assertEquals(None, shouldStartAfter(CannotBeShared))
+    assertEquals(None, shouldStartAfter())
+  }
+
+  def testShouldFinishBefore {
+    def shouldFinishBefore(conditions:Condition*) = new Activity("",1,tester,conditions.toList).shouldFinishBefore
+
+    assertEquals(Some(mon24_0), shouldFinishBefore(CannotBeShared,MustStartOn(wed02_0),CannotBeShared,ShouldFinishBefore(mon24_0)))
+    assertEquals(Some(mon24_0), shouldFinishBefore(ShouldFinishBefore(wed02_0),CannotBeShared,ShouldFinishBefore(mon24_0)))
+    assertEquals(Some(wed02_0), shouldFinishBefore(ShouldFinishBefore(wed02_0)))
+    assertEquals(None, shouldFinishBefore(CannotBeShared))
+    assertEquals(None, shouldFinishBefore())
+  }
+
+  def testBasePlanningTime {
+    def basePlanningTime(conditions:Condition*) = new Activity("",1,tester,conditions.toList).basePlanningTime
+
+    assertEquals(Some(wed26_0), basePlanningTime(ShouldStartAfter(mon24_0),ShouldFinishBefore(tue25_0),MustStartOn(wed26_0)))
+    assertEquals(Some(tue25_0), basePlanningTime(MustStartOn(tue25_0)))
+    assertEquals(Some(tue25_0), basePlanningTime(MustStartOn(wed02_0),MustStartOn(tue25_0)))
+    assertEquals(None, basePlanningTime(CannotBeShared))
+    assertEquals(None, basePlanningTime())
+    assertEquals(Some(tue25_0), basePlanningTime(ShouldStartAfter(mon24_0),ShouldFinishBefore(tue25_0)))
+    assertEquals(Some(tue25_0), basePlanningTime(ShouldFinishBefore(tue25_0)))
+    assertEquals(Some(mon24_0), basePlanningTime(ShouldFinishBefore(mon24_0),ShouldFinishBefore(tue25_0)))
+    assertEquals(Some(tue25_0), basePlanningTime(ShouldStartAfter(tue25_0)))
+    assertEquals(Some(tue25_0), basePlanningTime(ShouldStartAfter(mon24_0),ShouldStartAfter(tue25_0)))
+  }
+
   def testCompare {
-    assertTrue(a1.compare(a2) == 0)
-    assertTrue(a1.compare(a3) > 0)
-    assertTrue(a1.compare(a4) < 0)
-    assertTrue(a1.compare(a5) < 0)
+    val hasTime1 = new Activity("a2",1,developer,List(CannotBeShared,MustStartOn(wed02_0)))
+    val hasTime2 = new Activity("a3",1,developer,List(CannotBeShared,MustStartOn(wed02_0),MustStartOn(mon24_0)))
+    val hasTime3 = new Activity("a3",1,developer,List(ShouldStartAfter(mon24_0)))
+    val noTime1 = new Activity("a4",1,developer,List(CannotBeShared))
+    val noTime2 = new Activity("a5",1,developer,Nil)
 
-    assertTrue(a2.compare(a1) == 0)
-    assertTrue(a2.compare(a3) > 0)
-    assertTrue(a2.compare(a4) < 0)
-    assertTrue(a2.compare(a5) < 0)
+    assertTrue(hasTime1.compare(hasTime2) > 0)
+    assertTrue(hasTime1.compare(hasTime3) > 0)
+    assertTrue(hasTime1.compare(noTime1) < 0)
+    assertTrue(hasTime1.compare(noTime2) < 0)
 
-    assertTrue(a3.compare(a1) < 0)
-    assertTrue(a3.compare(a2) < 0)
-    assertTrue(a3.compare(a4) < 0)
-    assertTrue(a3.compare(a5) < 0)
+    assertTrue(hasTime2.compare(hasTime1) < 0)
+    assertTrue(hasTime2.compare(hasTime3) == 0)
+    assertTrue(hasTime2.compare(noTime1) < 0)
+    assertTrue(hasTime2.compare(noTime2) < 0)
 
-    assertTrue(a4.compare(a1) > 0)
-    assertTrue(a4.compare(a2) > 0)
-    assertTrue(a4.compare(a3) > 0)
-    assertTrue(a4.compare(a5) == 0)
+    assertTrue(hasTime3.compare(hasTime1) < 0)
+    assertTrue(hasTime3.compare(hasTime2) == 0)
+    assertTrue(hasTime3.compare(noTime1) < 0)
+    assertTrue(hasTime3.compare(noTime2) < 0)
 
-    assertTrue(a5.compare(a1) > 0)
-    assertTrue(a5.compare(a2) > 0)
-    assertTrue(a5.compare(a3) > 0)
-    assertTrue(a5.compare(a4) == 0)
-  }
+    assertTrue(noTime1.compare(hasTime1) > 0)
+    assertTrue(noTime1.compare(hasTime2) > 0)
+    assertTrue(noTime1.compare(hasTime3) > 0)
+    assertTrue(noTime1.compare(noTime2) == 0)
+
+    assertTrue(noTime2.compare(hasTime1) > 0)
+    assertTrue(noTime2.compare(hasTime2) > 0)
+    assertTrue(noTime2.compare(hasTime3) > 0)
+    assertTrue(noTime2.compare(noTime1) == 0)
+ }
 
 
 }

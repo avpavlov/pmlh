@@ -40,15 +40,16 @@ class Plan(val name:String,val start:Time,val milestones:List[Milestone]) {
 
   val activities = milestones.flatMap(_.activities)
 
-  val resourcesMap = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType==a.resourceType))).toMap
+  val resources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType==a.resourceType))).toMap
 
-  // map activity to its successors
-  val successorsMap = activities.map(activity => (activity->activity.successors(activities))).toMap
+  val predecessors = {
+    def find(a:Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
+    activities.map(activity => (activity->find(activity))).toMap
+  }
 
-  // entry points (no predecessors)
-  val startActivities = activities.filter(_.predecessors.isEmpty)
-
-  // exit points (no successors)
-  val finalActivities = activities.filter(successorsMap(_).isEmpty).sorted
+  val successors = {
+    def find(a:Activity) = activities.filter(predecessors(_).contains(a)).toSet
+    activities.map(activity => (activity->find(activity))).toMap
+  }
 }
 

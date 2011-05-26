@@ -37,8 +37,8 @@ import core.model._
 
 class ScheduleTest extends TestCase("Schedule") with TestingEnvironment {
 
-  val task32hForDeveloper = "task 1" needs 32.hours of developer
-  val task40hForDeveloper = "task 2" needs 40.hours of developer
+  val task32hForDeveloper = "task 1" needs 32.hours of developer where NoConditions
+  val task40hForDeveloper = "task 2" needs 40.hours of developer where NoConditions
 
   val schedule = new Schedule(List(
       developerC implements task32hForDeveloper from (fri28 at 0.hours) during 8.hours,
@@ -48,7 +48,7 @@ class ScheduleTest extends TestCase("Schedule") with TestingEnvironment {
     ))
 
   def testGetStartTime {
-    assertEquals(tue25 at 0.hours, schedule.getStartTime(task32hForDeveloper))
+    assertEquals(wed26 at 0.hours, schedule.getStartTime(task32hForDeveloper))
     assertEquals(mon24 at 0.hours, schedule.getStartTime(task40hForDeveloper))
   }
 

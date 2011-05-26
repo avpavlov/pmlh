@@ -33,7 +33,7 @@ import annotation.tailrec
 import core.model._
 
 class Allocator(plan: Plan, allocations:List[Allocation]) {
-
+  /*
   private[this] def sequences(planned:Set[Allocation], hoursRemain:Int, available:List[Allocation]):List[Set[Allocation]]
     = available.flatMap(a =>
         if (a.interval.hours >= hoursRemain )
@@ -63,6 +63,28 @@ class Allocator(plan: Plan, allocations:List[Allocation]) {
 
     // create separate schedule for each sequence
     s.map(allocations => new Schedule(schedule.allocations ++ allocations))
+  }
+  */
+  def scheduleActivity(activity:Activity):Seq[Schedule] = {
+    // check MustStartOn(time) => startTime
+    // check ShouldFinishAfter(activity) => schedule.getFinishTime(activity) => finishTime
+    // find all available resources
+
+    // strategies
+    // maximum resources | minimum from shorter to longer  | minimum from longer to shorter
+    Nil
+  }
+
+  def schedule()  {
+  }
+
+  def buildFlatList() = {
+    @tailrec def collectSuccessors(done: List[Activity]): List[Activity] =
+      done.flatMap(plan.successors(_)).filterNot(done.contains).sorted match {
+        case List() => done
+        case successors => collectSuccessors(done ++ successors)
+      }
+    collectSuccessors(List())
   }
 }
 

@@ -42,11 +42,15 @@ trait TestingEnvironment {
   implicit def wrapDate(date:Date) = new {
     def at (hours:Int) = Time(date,hours)
   }
-  implicit def wrapActivity(name:String) = new Tuple1[String](name) {
-    def needs (h:Int) = new Tuple2[String,Int](name,h) {
-      def of (resourceType:ResourceType) = new Activity(name,h,resourceType,Nil)
+  implicit def wrapActivity(name:String) = new {
+    def needs (h:Int) = new {
+      def of (resourceType:ResourceType) = new {
+        def where(conditions:List[Condition]) = new Activity(name,h,resourceType,conditions)
+      }
     }
   }
+  val NoConditions = List[Condition]()
+
   implicit def wrapResource(resource:Resource) = new {
     def implements (a:Activity) = new {
       def from(t:Time) = new {
