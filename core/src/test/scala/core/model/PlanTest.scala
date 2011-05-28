@@ -30,74 +30,73 @@ package core.model
 
 import junit.framework.TestCase
 import junit.framework.Assert._
-import java.text.SimpleDateFormat
 import core.util.TestingEnvironment
 
 class PlanTest extends TestCase("Plan") with TestingEnvironment {
   def testDependencies {
 
     val implementation = new Activity("implementation", 32, developer, Nil)
-    val ongoingTesting = new Activity("ongoing testing", 16, tester, List(ShouldFinishAfter(implementation)))
-    val finalTesting = new Activity("final testing", 16, tester, List(MustStartAfter(implementation),MustStartAfter(ongoingTesting),CannotBeShared))
-    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0),MustStartAfter(finalTesting),CannotBeShared))
-    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0),MustStartAfter(deployOnUat),CannotBeShared))
+    val ongoingTesting = new Activity("ongoing testing", 16, tester, List(JustifyFinishWith(implementation)))
+    val finalTesting = new Activity("final testing", 16, tester, List(MustStartAfter(implementation), MustStartAfter(ongoingTesting), CannotBeShared))
+    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0), MustStartAfter(finalTesting), CannotBeShared))
+    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0), MustStartAfter(deployOnUat), CannotBeShared))
 
     val milestone1 = new Milestone(
       "1.0.0",
       null,
-      List(implementation,ongoingTesting,finalTesting,deployOnUat,deployOnProduction),
-      List(developerC_availability,developerD_availability,testerA_availability)
+      List(implementation, ongoingTesting, finalTesting, deployOnUat, deployOnProduction),
+      List(developerC_availability, developerD_availability, testerA_availability)
     )
 
-    val loadTesting = new Activity("load testing", 8, tester, List(MustStartAfter(finalTesting),CannotBeShared))
+    val loadTesting = new Activity("load testing", 8, tester, List(MustStartAfter(finalTesting), CannotBeShared))
 
     val milestone2 = new Milestone(
-        "performance analysis",
+      "performance analysis",
       null,
       List(loadTesting),
       List(testerB_availability)
     )
 
-    val plan = new Plan("2 weeks",mon24_0,List(milestone1,milestone2))
+    val plan = new Plan("2 weeks", mon24_sun06, List(milestone1, milestone2))
 
     assertEquals(
       List(
-        implementation,ongoingTesting,finalTesting,deployOnUat,deployOnProduction,loadTesting
+        implementation, ongoingTesting, finalTesting, deployOnUat, deployOnProduction, loadTesting
       )
-      ,plan.activities
+      , plan.activities
     )
     assertEquals(
       Map(
-        implementation->List(developerC_availability,developerD_availability),
-        ongoingTesting->List(testerA_availability),
-        finalTesting->List(testerA_availability),
-        deployOnUat->List(developerC_availability,developerD_availability),
-        deployOnProduction->List(developerC_availability,developerD_availability),
-        loadTesting->List(testerB_availability)
+        implementation -> List(developerC_availability, developerD_availability),
+        ongoingTesting -> List(testerA_availability),
+        finalTesting -> List(testerA_availability),
+        deployOnUat -> List(developerC_availability, developerD_availability),
+        deployOnProduction -> List(developerC_availability, developerD_availability),
+        loadTesting -> List(testerB_availability)
       )
-      ,plan.resources
+      , plan.resources
     )
     assertEquals(
       Map(
-        implementation->Set(),
-        ongoingTesting->Set(implementation),
-        finalTesting->Set(ongoingTesting,implementation),
-        deployOnUat->Set(finalTesting),
-        deployOnProduction->Set(deployOnUat),
-        loadTesting->Set(finalTesting)
+        implementation -> Set(),
+        ongoingTesting -> Set(implementation),
+        finalTesting -> Set(ongoingTesting, implementation),
+        deployOnUat -> Set(finalTesting),
+        deployOnProduction -> Set(deployOnUat),
+        loadTesting -> Set(finalTesting)
       )
-      ,plan.predecessors
+      , plan.predecessors
     )
     assertEquals(
       Map(
-        implementation->Set(ongoingTesting,finalTesting),
-        ongoingTesting->Set(finalTesting),
-        finalTesting->Set(deployOnUat, loadTesting),
-        deployOnUat->Set(deployOnProduction),
-        deployOnProduction->Set(),
-        loadTesting->Set()
+        implementation -> Set(ongoingTesting, finalTesting),
+        ongoingTesting -> Set(finalTesting),
+        finalTesting -> Set(deployOnUat, loadTesting),
+        deployOnUat -> Set(deployOnProduction),
+        deployOnProduction -> Set(),
+        loadTesting -> Set()
       )
-      ,plan.successors
+      , plan.successors
     )
   }
 }

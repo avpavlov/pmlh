@@ -30,45 +30,31 @@ package core.model
 
 import scala.Some
 
-class Activity(val name:String,
-               val hours:Int,
-               val resourceType:ResourceType,
-               val conditions:List[Condition]
-              ) extends Ordered[Activity] {
+class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val conditions: List[Condition]) {
 
   val cannotBeShared = !conditions.find(_ == CannotBeShared).isEmpty
-  
+
   val mustStartOn = conditions
-          .filter(_.isInstanceOf[MustStartOn])
-          .map(_.asInstanceOf[MustStartOn].time) match {
-            case List() => None
-            case notEmptyList => Some(notEmptyList.min)
-          }
+    .filter(_.isInstanceOf[MustStartOn])
+    .map(_.asInstanceOf[MustStartOn].time) match {
+    case List() => None
+    case notEmptyList => Some(notEmptyList.min)
+  }
 
   val shouldStartAfter = conditions
-          .filter(_.isInstanceOf[ShouldStartAfter])
-          .map(_.asInstanceOf[ShouldStartAfter].time) match {
-            case List() => None
-            case notEmptyList => Some(notEmptyList.max)
-          }
+    .filter(_.isInstanceOf[ShouldStartAfter])
+    .map(_.asInstanceOf[ShouldStartAfter].time) match {
+    case List() => None
+    case notEmptyList => Some(notEmptyList.max)
+  }
 
   val shouldFinishBefore = conditions
-          .filter(_.isInstanceOf[ShouldFinishBefore])
-          .map(_.asInstanceOf[ShouldFinishBefore].time) match {
-            case List() => None
-            case notEmptyList => Some(notEmptyList.min)
-          }
-
-  val basePlanningTime =
-          if (mustStartOn.isDefined) mustStartOn
-          else if (shouldFinishBefore.isDefined) shouldFinishBefore
-          else shouldStartAfter
-
-  override def compare(that: Activity) = (basePlanningTime,that.basePlanningTime) match {
-      case (None,None) => 0
-      case (None, _) => 1 // if no date then place at end
-      case (_, None) => -1
-      case (Some(x),Some(y)) => x.compare(y)
+    .filter(_.isInstanceOf[ShouldFinishBefore])
+    .map(_.asInstanceOf[ShouldFinishBefore].time) match {
+    case List() => None
+    case notEmptyList => Some(notEmptyList.min)
   }
+
+  val basePlanningTime = if (mustStartOn.isDefined) mustStartOn else shouldFinishBefore
 
 }

@@ -35,26 +35,32 @@ import java.util.Date
 import core.builder.Allocation
 
 trait TestingEnvironment {
-  implicit def wrapString(format:String) = new SimpleDateFormat(format)
-  implicit def wrapHours(h:Int) = new {
+  implicit def wrapString(format: String) = new SimpleDateFormat(format)
+
+  implicit def wrapHours(h: Int) = new {
     def hours = h
   }
-  implicit def wrapDate(date:Date) = new {
-    def at (hours:Int) = Time(date,hours)
+
+  implicit def wrapDate(date: Date) = new {
+    def at(hours: Int) = Time(date, hours)
   }
-  implicit def wrapActivity(name:String) = new {
-    def needs (h:Int) = new {
-      def of (resourceType:ResourceType) = new {
-        def where(conditions:List[Condition]) = new Activity(name,h,resourceType,conditions)
+
+  implicit def wrapActivity(name: String) = new {
+    def needs(h: Int) = new {
+      def of(resourceType: ResourceType) = new {
+        def where(conditions: Condition*) = new Activity(name, h, resourceType, conditions.toList)
+
+        def where(conditions: Array[Condition]) = new Activity(name, h, resourceType, conditions.toList)
       }
     }
   }
-  val NoConditions = List[Condition]()
 
-  implicit def wrapResource(resource:Resource) = new {
-    def implements (a:Activity) = new {
-      def from(t:Time) = new {
-        def during(h:Int) = new Allocation(a,resource,default.getPeriod(t,h))
+  val NoConditions: Array[Condition] = Array()
+
+  implicit def wrapResource(resource: Resource) = new {
+    def implements(a: Activity) = new {
+      def from(t: Time) = new {
+        def during(h: Int) = new Allocation(a, resource, default.getPeriod(t, h))
       }
     }
   }
@@ -95,7 +101,7 @@ trait TestingEnvironment {
   val tue01_4 = Time(tue01, 4)
   val tue01_8 = Time(tue01, 8)
   val wed02_0 = Time(wed02, 0)
-  val fri04_0 = Time(fri04,0)
+  val fri04_0 = Time(fri04, 0)
   val sun06_0 = Time(sun06, 0)
 
   // default calendar
@@ -105,21 +111,27 @@ trait TestingEnvironment {
   // MON 31/05/2010 and TUE 01/06/2010 - forced holidays
   // FRI 28/05/2010 and SAT 29/05/2010 - forced working days
   // FRI-SUN - not working days
-  val global = new WorkingCalendar(null,8,List(mon31,tue01),List(fri28,sat29),List(MONDAY,TUESDAY,WEDNESDAY,THURSDAY))
+  val global = new WorkingCalendar(null, 8, List(mon31, tue01), List(fri28, sat29), List(MONDAY, TUESDAY, WEDNESDAY, THURSDAY))
 
   // personal calendar based on global
   // FRI 28/05/2010 - forced holidays (ignores global calendar)
   // SUN 30/05/2010 - forced working day
   // week days ARE NOT IMPORTANT, IT USES GLOBAL
-  val personal = new WorkingCalendar(global,8,List(fri28),List(sun30),Nil)
+  val personal = new WorkingCalendar(global, 8, List(fri28), List(sun30), Nil)
 
   val developer = new ResourceType("developer")
   val tester = new ResourceType("tester")
+  val manager = new ResourceType("manager")
+  val analyst = new ResourceType("analyst")
 
   var testerA = Resource("A", tester, default)
   var testerB = Resource("B", tester, default)
   var developerC = Resource("C", developer, default)
   var developerD = Resource("D", developer, default)
+  var developerE = Resource("E", developer, default)
+  var managerF = Resource("F", manager, default)
+  var analystG = Resource("G", analyst, default)
+  var analystH = Resource("H", analyst, default)
 
   var mon24_sun06 = default.getPeriod(mon24_0, sun06_0)
 
@@ -127,5 +139,7 @@ trait TestingEnvironment {
   val testerB_availability = AvailableResource(testerB, mon24_sun06)
   val developerC_availability = AvailableResource(developerC, mon24_sun06)
   val developerD_availability = AvailableResource(developerD, mon24_sun06)
+
+  def shuffle[T](list: List[T]) = list.map((_, scala.math.random)).sortWith((d1, d2) => d1._2 > d2._2).map(_._1)
 
 }

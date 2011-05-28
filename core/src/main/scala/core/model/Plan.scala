@@ -28,28 +28,27 @@
 
 package core.model
 
-import java.util.{Date}
+class Project(val name: String)
 
-class Project(val name:String)
-class Milestone(val name:String,
-                val project:Project,
-                val activities:List[Activity],
-                val availableResources:List[AvailableResource])
+class Milestone(val name: String,
+                val project: Project,
+                val activities: List[Activity],
+                val availableResources: List[AvailableResource])
 
-class Plan(val name:String,val start:Time,val milestones:List[Milestone]) {
+class Plan(val name: String, val period: Period, val milestones: List[Milestone]) {
 
   val activities = milestones.flatMap(_.activities)
 
-  val resources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType==a.resourceType))).toMap
+  val resources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
 
   val predecessors = {
-    def find(a:Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
-    activities.map(activity => (activity->find(activity))).toMap
+    def find(a: Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
+    activities.map(activity => (activity -> find(activity))).toMap
   }
 
   val successors = {
-    def find(a:Activity) = activities.filter(predecessors(_).contains(a)).toSet
-    activities.map(activity => (activity->find(activity))).toMap
+    def find(a: Activity) = activities.filter(predecessors(_).contains(a)).toSet
+    activities.map(activity => (activity -> find(activity))).toMap
   }
 }
 

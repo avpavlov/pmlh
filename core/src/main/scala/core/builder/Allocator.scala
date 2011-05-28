@@ -28,11 +28,46 @@
 
 package core.builder
 
-import java.util.{Calendar, Date}
 import annotation.tailrec
 import core.model._
 
-class Allocator(plan: Plan, allocations:List[Allocation]) {
+class Allocator(plan: Plan, allocations: List[Allocation]) {
+  val orderedActivities = {
+
+    def resourcesCount(a: Activity) = if (a.cannotBeShared) 1 else plan.resources(a).map(_.resource).distinct.size
+
+    @tailrec def dependencies(predecessors: Boolean, nextPortion: List[Activity], accumulated: List[Activity]): List[Activity] = {
+      val immediateDeps = if (predecessors) plan.predecessors else plan.successors
+      val reverseDeps = if (predecessors) plan.successors else plan.predecessors
+      nextPortion.flatMap(immediateDeps(_)).filterNot(accumulated.contains).sortBy(resourcesCount) match {
+        case List() => accumulated
+        case immediateDependencies => {
+          val firstLevelOnly = immediateDependencies.filter(reverseDeps(_).find(immediateDependencies.contains).isEmpty) match {
+            case List() => immediateDependencies // circular references, return as is
+            case noDependant => noDependant
+          }
+          val result = if (predecessors) firstLevelOnly ++ accumulated else accumulated ++ firstLevelOnly
+          dependencies(predecessors, firstLevelOnly, result)
+        }
+      }
+    }
+
+    def predecessors(entryPoints: List[Activity]) = dependencies(true, entryPoints, Nil).filterNot(entryPoints.contains)
+
+    def successors(entryPoints: List[Activity]) = dependencies(false, entryPoints, Nil).filterNot(entryPoints.contains)
+
+    val bpt = plan.activities.filter(_.basePlanningTime.isDefined).sortBy(_.basePlanningTime.get)
+    val bptAndPredecessors = bpt ++ predecessors(bpt)
+    val bptAndPredecessorsAndSuccessors = bptAndPredecessors ++ successors(bptAndPredecessors)
+    val remainderEntryPoints = plan.activities
+      .filterNot(bptAndPredecessorsAndSuccessors.contains) // remainder
+      .filter(plan.predecessors(_).isEmpty) // entry point
+      .sortBy(resourcesCount)
+    val orderedRemainder = remainderEntryPoints ++ successors(remainderEntryPoints)
+
+    bptAndPredecessorsAndSuccessors ++ orderedRemainder
+  }
+
   /*
   private[this] def sequences(planned:Set[Allocation], hoursRemain:Int, available:List[Allocation]):List[Set[Allocation]]
     = available.flatMap(a =>
@@ -65,27 +100,6 @@ class Allocator(plan: Plan, allocations:List[Allocation]) {
     s.map(allocations => new Schedule(schedule.allocations ++ allocations))
   }
   */
-  def scheduleActivity(activity:Activity):Seq[Schedule] = {
-    // check MustStartOn(time) => startTime
-    // check ShouldFinishAfter(activity) => schedule.getFinishTime(activity) => finishTime
-    // find all available resources
-
-    // strategies
-    // maximum resources | minimum from shorter to longer  | minimum from longer to shorter
-    Nil
-  }
-
-  def schedule()  {
-  }
-
-  def buildFlatList() = {
-    @tailrec def collectSuccessors(done: List[Activity]): List[Activity] =
-      done.flatMap(plan.successors(_)).filterNot(done.contains).sorted match {
-        case List() => done
-        case successors => collectSuccessors(done ++ successors)
-      }
-    collectSuccessors(List())
-  }
 }
 
 

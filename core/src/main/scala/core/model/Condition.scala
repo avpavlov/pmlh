@@ -32,11 +32,15 @@ abstract class Condition
 
 case object CannotBeShared extends Condition
 
-case class MustStartOn(val time:Time) extends Condition
-case class ShouldStartAfter(val time:Time) extends Condition
-case class ShouldFinishBefore(val time:Time) extends Condition
+case class MustStartOn(val time: Time) extends Condition
 
-abstract class DependsOn(val activity:Activity) extends Condition
-case class MustStartAfter(override val activity:Activity) extends DependsOn(activity)
-case class ShouldFinishAfter(override val activity:Activity) extends DependsOn(activity)
+case class ShouldStartAfter(val time: Time) extends Condition
+
+case class ShouldFinishBefore(val time: Time) extends Condition
+
+abstract class DependsOn(val activity: Activity) extends Condition
+
+case class MustStartAfter(override val activity: Activity) extends DependsOn(activity)
+
+case class JustifyFinishWith(override val activity: Activity) extends DependsOn(activity)
 
