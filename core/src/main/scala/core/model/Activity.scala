@@ -57,4 +57,5 @@ class Activity(val name: String, val hours: Int, val resourceType: ResourceType,
 
   val basePlanningTime = if (mustStartOn.isDefined) mustStartOn else shouldFinishBefore
 
+  override def toString = name
 }

@@ -139,6 +139,10 @@ trait TestingEnvironment {
   val testerB_availability = AvailableResource(testerB, mon24_sun06)
   val developerC_availability = AvailableResource(developerC, mon24_sun06)
   val developerD_availability = AvailableResource(developerD, mon24_sun06)
+  val developerE_availability = AvailableResource(developerE, mon24_sun06)
+  val managerF_availability = AvailableResource(managerF, mon24_sun06)
+  val analystG_availability = AvailableResource(analystG, mon24_sun06)
+  val analystH_availability = AvailableResource(analystH, mon24_sun06)
 
   def shuffle[T](list: List[T]) = list.map((_, scala.math.random)).sortWith((d1, d2) => d1._2 > d2._2).map(_._1)
 

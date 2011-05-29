@@ -28,6 +28,8 @@
 
 package core.model
 
+import annotation.tailrec
+
 class Project(val name: String)
 
 class Milestone(val name: String,
@@ -42,13 +44,28 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
   val resources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
 
   val predecessors = {
-    def find(a: Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
-    activities.map(activity => (activity -> find(activity))).toMap
+    def findDeps(a: Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
+    activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val successors = {
-    def find(a: Activity) = activities.filter(predecessors(_).contains(a)).toSet
-    activities.map(activity => (activity -> find(activity))).toMap
+    def findDeps(a: Activity) = activities.filter(predecessors(_).contains(a)).toSet
+    activities.map(activity => (activity -> findDeps(activity))).toMap
+  }
+
+  val (allLevelPredecessors, allLevelSuccessors) = {
+    @tailrec def findDeps(immediateDepsMap: Map[Activity, Set[Activity]], nextPortion: Set[Activity], accumulated: Set[Activity]): Set[Activity] = {
+      nextPortion.flatMap(immediateDepsMap(_)).filterNot(accumulated.contains) match {
+        case empty if empty.isEmpty => accumulated
+        case immediateDependencies => findDeps(immediateDepsMap, immediateDependencies, accumulated ++ immediateDependencies)
+      }
+    }
+    def deps(activity: Activity, immediateDepsMap: Map[Activity, Set[Activity]]) = findDeps(immediateDepsMap, immediateDepsMap(activity), immediateDepsMap(activity))
+
+    (
+      activities.map(activity => (activity -> deps(activity, predecessors))).toMap,
+      activities.map(activity => (activity -> deps(activity, successors))).toMap
+      )
   }
 }
 

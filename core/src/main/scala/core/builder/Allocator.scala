@@ -38,8 +38,8 @@ class Allocator(plan: Plan, allocations: List[Allocation]) {
 
     @tailrec def dependencies(predecessors: Boolean, nextPortion: List[Activity], accumulated: List[Activity]): List[Activity] = {
       val immediateDeps = if (predecessors) plan.predecessors else plan.successors
-      val reverseDeps = if (predecessors) plan.successors else plan.predecessors
-      nextPortion.flatMap(immediateDeps(_)).filterNot(accumulated.contains).sortBy(resourcesCount) match {
+      val reverseDeps = if (predecessors) plan.allLevelSuccessors else plan.allLevelPredecessors
+      nextPortion.flatMap(immediateDeps(_)).filterNot(accumulated.contains).distinct.sortBy(resourcesCount) match {
         case List() => accumulated
         case immediateDependencies => {
           val firstLevelOnly = immediateDependencies.filter(reverseDeps(_).find(immediateDependencies.contains).isEmpty) match {
@@ -52,9 +52,9 @@ class Allocator(plan: Plan, allocations: List[Allocation]) {
       }
     }
 
-    def predecessors(entryPoints: List[Activity]) = dependencies(true, entryPoints, Nil).filterNot(entryPoints.contains)
+    def predecessors(entryPoints: List[Activity]) = dependencies(true, entryPoints, entryPoints).filterNot(entryPoints.contains)
 
-    def successors(entryPoints: List[Activity]) = dependencies(false, entryPoints, Nil).filterNot(entryPoints.contains)
+    def successors(entryPoints: List[Activity]) = dependencies(false, entryPoints, entryPoints).filterNot(entryPoints.contains)
 
     val bpt = plan.activities.filter(_.basePlanningTime.isDefined).sortBy(_.basePlanningTime.get)
     val bptAndPredecessors = bpt ++ predecessors(bpt)
