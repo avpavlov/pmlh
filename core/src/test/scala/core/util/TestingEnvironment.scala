@@ -29,10 +29,10 @@
 package core.util
 
 import java.text.SimpleDateFormat
-import java.util.Calendar._
-import core.model._
 import java.util.Date
 import core.builder.Allocation
+import core.model._
+import core.model.WorkingCalendar.StandardWorkingWeek
 
 trait TestingEnvironment {
   implicit def wrapString(format: String) = new SimpleDateFormat(format)
@@ -60,7 +60,7 @@ trait TestingEnvironment {
   implicit def wrapResource(resource: Resource) = new {
     def implements(a: Activity) = new {
       def from(t: Time) = new {
-        def during(h: Int) = new Allocation(a, resource, default.getPeriod(t, h))
+        def during(h: Int) = new Allocation(a, AssignedResource(resource, default.getPeriod(t, h), default))
       }
     }
   }
@@ -105,44 +105,32 @@ trait TestingEnvironment {
   val sun06_0 = Time(sun06, 0)
 
   // default calendar
-  val default = new WorkingCalendar
-
-  // global calendar
-  // MON 31/05/2010 and TUE 01/06/2010 - forced holidays
-  // FRI 28/05/2010 and SAT 29/05/2010 - forced working days
-  // FRI-SUN - not working days
-  val global = new WorkingCalendar(null, 8, List(mon31, tue01), List(fri28, sat29), List(MONDAY, TUESDAY, WEDNESDAY, THURSDAY))
-
-  // personal calendar based on global
-  // FRI 28/05/2010 - forced holidays (ignores global calendar)
-  // SUN 30/05/2010 - forced working day
-  // week days ARE NOT IMPORTANT, IT USES GLOBAL
-  val personal = new WorkingCalendar(global, 8, List(fri28), List(sun30), Nil)
+  val default = new WorkingCalendar(workingDaysOfWeek = StandardWorkingWeek)
 
   val developer = new ResourceType("developer")
   val tester = new ResourceType("tester")
   val manager = new ResourceType("manager")
   val analyst = new ResourceType("analyst")
 
-  var testerA = Resource("A", tester, default)
-  var testerB = Resource("B", tester, default)
-  var developerC = Resource("C", developer, default)
-  var developerD = Resource("D", developer, default)
-  var developerE = Resource("E", developer, default)
-  var managerF = Resource("F", manager, default)
-  var analystG = Resource("G", analyst, default)
-  var analystH = Resource("H", analyst, default)
+  var testerA = Resource("A", tester)
+  var testerB = Resource("B", tester)
+  var developerC = Resource("C", developer)
+  var developerD = Resource("D", developer)
+  var developerE = Resource("E", developer)
+  var managerF = Resource("F", manager)
+  var analystG = Resource("G", analyst)
+  var analystH = Resource("H", analyst)
 
   var mon24_sun06 = default.getPeriod(mon24_0, sun06_0)
 
-  val testerA_availability = AvailableResource(testerA, mon24_sun06)
-  val testerB_availability = AvailableResource(testerB, mon24_sun06)
-  val developerC_availability = AvailableResource(developerC, mon24_sun06)
-  val developerD_availability = AvailableResource(developerD, mon24_sun06)
-  val developerE_availability = AvailableResource(developerE, mon24_sun06)
-  val managerF_availability = AvailableResource(managerF, mon24_sun06)
-  val analystG_availability = AvailableResource(analystG, mon24_sun06)
-  val analystH_availability = AvailableResource(analystH, mon24_sun06)
+  val testerA_availability = AvailableResource(testerA, mon24_sun06, default)
+  val testerB_availability = AvailableResource(testerB, mon24_sun06, default)
+  val developerC_availability = AvailableResource(developerC, mon24_sun06, default)
+  val developerD_availability = AvailableResource(developerD, mon24_sun06, default)
+  val developerE_availability = AvailableResource(developerE, mon24_sun06, default)
+  val managerF_availability = AvailableResource(managerF, mon24_sun06, default)
+  val analystG_availability = AvailableResource(analystG, mon24_sun06, default)
+  val analystH_availability = AvailableResource(analystH, mon24_sun06, default)
 
   def shuffle[T](list: List[T]) = list.map((_, scala.math.random)).sortWith((d1, d2) => d1._2 > d2._2).map(_._1)
 

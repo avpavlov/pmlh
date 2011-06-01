@@ -32,23 +32,45 @@ import java.util.{Calendar, Date}
 import java.util.Calendar._
 import annotation.tailrec
 
-class WorkingCalendar(val base: WorkingCalendar = null,
+abstract sealed class DayOfWeek(val index: Int)
+
+case object Sun extends DayOfWeek(SUNDAY)
+
+case object Mon extends DayOfWeek(MONDAY)
+
+case object Tue extends DayOfWeek(TUESDAY)
+
+case object Wed extends DayOfWeek(WEDNESDAY)
+
+case object Thu extends DayOfWeek(THURSDAY)
+
+case object Fri extends DayOfWeek(FRIDAY)
+
+case object Sat extends DayOfWeek(SATURDAY)
+
+object DayOfWeek {
+  implicit def date2Calendar(date: Date) = {
+    val c = Calendar.getInstance; c.setTime(date); c
+  }
+
+  def apply(date: Date) = mapping(date.get(DAY_OF_WEEK))
+
+  private[this] val mapping = List(Mon, Tue, Wed, Thu, Fri, Sat, Sun).map(dayOfWeek => dayOfWeek.index -> dayOfWeek).toMap
+}
+
+class WorkingCalendar(val parentCalendar: WorkingCalendar = null,
+                      val workingDaysOfWeek: List[DayOfWeek] = Nil,
                       val hoursPerDay: Int = 8,
                       val holidays: List[Date] = Nil,
-                      val workingDays: List[Date] = Nil,
-                      val workingDaysOfWeek: List[Int] = List(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY)
-        ) {
-  implicit def date2Calendar(date: Date) = {
-    val c = Calendar.getInstance
-    c.setTime(date)
-    c
-  }
+                      val workingDays: List[Date] = Nil
+                       ) {
+  require(parentCalendar == null || workingDaysOfWeek.isEmpty, "Parent calendar and working days of week are mutually exclusive.")
 
   def isWorkingDay(date: Date): Boolean = {
     if (holidays.contains(date)) false
     else if (workingDays.contains(date)) true
-    else if (base != null && base.isWorkingDay(date)) true
-    else workingDaysOfWeek.contains(date.get(DAY_OF_WEEK))
+    else if (parentCalendar != null) parentCalendar.isWorkingDay(date)
+    else workingDaysOfWeek.contains(DayOfWeek(date))
   }
 
   def getNextWorkingDay(date: Date): Date = getNextWorkingDay(date, 24 * 60 * 60 * 1000)
@@ -60,8 +82,8 @@ class WorkingCalendar(val base: WorkingCalendar = null,
     case d => getNextWorkingDay(d, delta)
   }
 
-  def getPeriod(start:Time, finish:Time):Period = {
-    val (expectedPeriodStart,expectedPeriodEnd) = if (start <= finish) (start,finish) else (finish,start)
+  def getPeriod(start: Time, finish: Time): Period = {
+    val (expectedPeriodStart, expectedPeriodEnd) = if (start <= finish) (start, finish) else (finish, start)
 
     val canWorkAtFirstDay = isWorkingDay(expectedPeriodStart.day) && expectedPeriodStart.hour < hoursPerDay
     val canWorkAtLastDay = isWorkingDay(expectedPeriodEnd.day) && expectedPeriodEnd.hour > 0
@@ -70,14 +92,14 @@ class WorkingCalendar(val base: WorkingCalendar = null,
 
     @tailrec def findPeriodLength(current: Time, hours: Int): Int = current.day.compareTo(periodEnd.day) match {
       case cmpResult if cmpResult > 0 => hours
-      case cmpResult if cmpResult == 0 => hours + (periodEnd.hour-current.hour)
-      case _ => findPeriodLength(Time(getNextWorkingDay(current.day), 0), hours + (hoursPerDay-current.hour))
+      case cmpResult if cmpResult == 0 => hours + (periodEnd.hour - current.hour)
+      case _ => findPeriodLength(Time(getNextWorkingDay(current.day), 0), hours + (hoursPerDay - current.hour))
     }
 
     if (periodStart >= periodEnd)
       Period(periodStart, periodStart, 0)
     else
-      Period(periodStart, periodEnd, findPeriodLength(periodStart,0))
+      Period(periodStart, periodEnd, findPeriodLength(periodStart, 0))
   }
 
   def getPeriod(start: Time, hours: Int): Period = {
@@ -115,24 +137,6 @@ class WorkingCalendar(val base: WorkingCalendar = null,
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+object WorkingCalendar {
+  val StandardWorkingWeek: List[DayOfWeek] = List(Mon, Tue, Wed, Thu, Fri)
+}

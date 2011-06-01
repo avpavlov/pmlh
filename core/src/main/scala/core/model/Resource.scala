@@ -28,7 +28,11 @@
 
 package core.model
 
-case class ResourceType(val name:String)
-case class Resource(val name:String,val resourceType:ResourceType,val calendar:WorkingCalendar)
-case class AvailableResource(val resource:Resource,val period:Period)
+case class ResourceType(val name: String)
+
+case class Resource(val name: String, val resourceType: ResourceType)
+
+case class AvailableResource(val resource: Resource, val period: Period, val calendar: WorkingCalendar)
+
+case class AssignedResource(val resource: Resource, val period: Period, val calendar: WorkingCalendar)
 

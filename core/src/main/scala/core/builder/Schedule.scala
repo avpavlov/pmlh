@@ -28,31 +28,31 @@
 
 package core.builder
 
-import core.model.{Resource, Period, Activity}
+import core.model._
 
-case class Allocation(val activity: Activity, val resource: Resource, val interval: Period)
-class Schedule(val allocations:List[Allocation]) {
+case class Allocation(val activity: Activity, val assigned: AssignedResource)
 
-  def getHoursAllocated(a:Activity) = allocations
-          .filter(_.activity == a)
-          .map(_.interval.hours)
-          .sum
+class Schedule(val allocations: List[Allocation]) {
 
-  def getUnallocatedPeriods(r:Resource,p:Period):List[Period] = allocations
-          .filter(_.resource == r)
-          .map(_.interval)
-          .foldLeft(List(p))(
-            (unallocated, busy)=>unallocated.flatMap(_.subtraction(busy,r.calendar))
-          )
-          .filter(_.hours > 0)
+  def getHoursAllocated(a: Activity) = allocations
+    .filter(_.activity == a)
+    .map(_.assigned.period.hours)
+    .sum
 
-  def getHoursAllocated(r:Resource,p:Period) = allocations
-          .filter(_.resource == r)
-          .map(_.interval.intersection(p,r.calendar).hours)
-          .sum
+  def getUnallocatedPeriods(r: Resource, p: Period): List[Period] = allocations
+    .filter(_.assigned.resource == r)
+    .foldLeft(List(p))(
+    (unallocated, allocation) => unallocated.flatMap(_.subtraction(allocation.assigned.period, allocation.assigned.calendar))
+  )
+    .filter(_.hours > 0)
 
-  def getStartTime(a:Activity) = allocations
-          .filter(_.activity == a)
-          .map(_.interval.start)
-          .min
+  def getHoursAllocated(r: Resource, p: Period) = allocations
+    .filter(_.assigned.resource == r)
+    .map(allocation => allocation.assigned.period.intersection(p, allocation.assigned.calendar).hours)
+    .sum
+
+  def getStartTime(a: Activity) = allocations
+    .filter(_.activity == a)
+    .map(_.assigned.period.start)
+    .min
 }

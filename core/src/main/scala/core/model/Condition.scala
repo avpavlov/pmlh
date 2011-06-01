@@ -30,7 +30,9 @@ package core.model
 
 abstract class Condition
 
-case object CannotBeShared extends Condition
+case object CannotBeSharedNorDivided extends Condition
+
+case class PreferredResources(resources: Resource*)
 
 case class MustStartOn(val time: Time) extends Condition
 

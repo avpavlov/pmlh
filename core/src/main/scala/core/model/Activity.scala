@@ -32,7 +32,7 @@ import scala.Some
 
 class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val conditions: List[Condition]) {
 
-  val cannotBeShared = !conditions.find(_ == CannotBeShared).isEmpty
+  val cannotBeSharedNorDivided = !conditions.find(_ == CannotBeSharedNorDivided).isEmpty
 
   val mustStartOn = conditions
     .filter(_.isInstanceOf[MustStartOn])

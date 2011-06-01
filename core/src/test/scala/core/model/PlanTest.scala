@@ -37,9 +37,9 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
 
     val implementation = new Activity("implementation", 32, developer, Nil)
     val ongoingTesting = new Activity("ongoing testing", 16, tester, List(JustifyFinishWith(implementation)))
-    val finalTesting = new Activity("final testing", 16, tester, List(MustStartAfter(implementation), MustStartAfter(ongoingTesting), CannotBeShared))
-    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0), MustStartAfter(finalTesting), CannotBeShared))
-    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0), MustStartAfter(deployOnUat), CannotBeShared))
+    val finalTesting = new Activity("final testing", 16, tester, List(MustStartAfter(implementation), MustStartAfter(ongoingTesting), CannotBeSharedNorDivided))
+    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0), MustStartAfter(finalTesting), CannotBeSharedNorDivided))
+    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0), MustStartAfter(deployOnUat), CannotBeSharedNorDivided))
 
     val milestone1 = new Milestone(
       "1.0.0",
@@ -48,7 +48,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
       List(developerC_availability, developerD_availability, testerA_availability)
     )
 
-    val loadTesting = new Activity("load testing", 8, tester, List(MustStartAfter(finalTesting), CannotBeShared))
+    val loadTesting = new Activity("load testing", 8, tester, List(MustStartAfter(finalTesting), CannotBeSharedNorDivided))
 
     val milestone2 = new Milestone(
       "performance analysis",
