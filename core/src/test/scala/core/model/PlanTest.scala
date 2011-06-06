@@ -98,5 +98,27 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
       )
       , plan.successors
     )
+    assertEquals(
+      Map(
+        implementation -> Set(),
+        ongoingTesting -> Set(implementation),
+        finalTesting -> Set(ongoingTesting, implementation),
+        deployOnUat -> Set(finalTesting, ongoingTesting, implementation),
+        deployOnProduction -> Set(deployOnUat, finalTesting, ongoingTesting, implementation),
+        loadTesting -> Set(finalTesting, ongoingTesting, implementation)
+      )
+      , plan.allLevelPredecessors
+    )
+    assertEquals(
+      Map(
+        implementation -> Set(ongoingTesting, finalTesting, deployOnUat, loadTesting, deployOnProduction),
+        ongoingTesting -> Set(finalTesting, deployOnUat, loadTesting, deployOnProduction),
+        finalTesting -> Set(deployOnUat, loadTesting, deployOnProduction),
+        deployOnUat -> Set(deployOnProduction),
+        deployOnProduction -> Set(),
+        loadTesting -> Set()
+      )
+      , plan.allLevelSuccessors
+    )
   }
 }
