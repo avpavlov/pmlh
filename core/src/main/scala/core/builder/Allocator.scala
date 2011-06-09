@@ -34,7 +34,7 @@ import core.model._
 class Allocator(plan: Plan, allocations: List[Allocation]) {
   val orderedActivities = {
 
-    def resourcesCount(a: Activity) = if (a.cannotBeSharedNorDivided) 1 else plan.resources(a).map(_.resource).distinct.size
+    def resourcesCount(a: Activity) = if (a.cannotBeSharedNorDivided) 1 else plan.resources(a).size
 
     @tailrec def dependencies(predecessors: Boolean, nextPortion: List[Activity], accumulated: List[Activity]): List[Activity] = {
       val immediateDeps = if (predecessors) plan.predecessors else plan.successors

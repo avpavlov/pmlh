@@ -45,6 +45,25 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
     assertEquals(false, cannotBeSharedNorDivided())
   }
 
+  def testPreferredResources() {
+    def preferredResources(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).preferredResources
+
+    assertEquals(Set(), preferredResources())
+    assertEquals(Set(), preferredResources(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided))
+    assertEquals(Set(), preferredResources(PreferredResources()))
+    assertEquals(Set(developerC), preferredResources(PreferredResources(developerC)))
+    assertEquals(Set(developerC, developerD), preferredResources(PreferredResources(developerC, developerD)))
+    assertEquals(Set(developerC, developerD, developerE), preferredResources(PreferredResources(developerC, developerD), PreferredResources(developerE, developerD)))
+  }
+
+  def testMustStartAfter() {
+    fail("to be implemented")
+  }
+
+  def testJustifyFinishWith() {
+    fail("to be implemented")
+  }
+
   def testMustStartOn() {
     def mustStartOn(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).mustStartOn
 

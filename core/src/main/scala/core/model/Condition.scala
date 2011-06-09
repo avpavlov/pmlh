@@ -32,7 +32,7 @@ abstract class Condition
 
 case object CannotBeSharedNorDivided extends Condition
 
-case class PreferredResources(resources: Resource*)
+case class PreferredResources(resources: Resource*) extends Condition
 
 case class MustStartOn(val time: Time) extends Condition
 

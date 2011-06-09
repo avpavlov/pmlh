@@ -41,7 +41,10 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
 
   val activities = milestones.flatMap(_.activities)
 
-  val resources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
+  val availableResources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
+  val resources = availableResources.map {
+    case (a, ar) => a -> ar.map(_.resource).toSet
+  }
 
   val predecessors = {
     def findDeps(a: Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
@@ -67,5 +70,39 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
       activities.map(activity => (activity -> deps(activity, successors))).toMap
       )
   }
+
+  val zeroLength = activities.filter(_.hours == 0)
+
+  val wrongMustStartOn = activities
+    .filter(_.mustStartOn.isDefined)
+    .filter(_.shouldFinishBefore.isDefined)
+    .filter(a => a.mustStartOn >= a.shouldFinishBefore)
+
+  val wrongShouldFinishBefore = activities
+    .filter(_.shouldStartAfter.isDefined)
+    .filter(_.shouldFinishBefore.isDefined)
+    .filter(a => a.shouldStartAfter >= a.shouldFinishBefore)
+
+  val wrongShouldStartAfter = activities
+    .filter(_.shouldStartAfter.isDefined)
+    .filter(_.mustStartOn.isDefined)
+    .filter(a => a.shouldStartAfter > a.mustStartOn)
+
+  val noResources = activities.filter(resources(_).isEmpty)
+
+  val wrongPreferredResources = activities.filterNot(a => a.preferredResources.subsetOf(resources(a)))
+
+  /*
+    incompatible: a.MustStartAfter(b), b.MustStartAfter(a)
+    incompatible: a.MustStartAfter(b), b.JustifyFinishWith(a)
+    compatible: a.JustifyFinishWith(b), b.JustifyFinishWith(a)
+  */
+  val circularDependencies = activities.filter(a => a.mustStartAfter.exists(allLevelPredecessors(_).contains(a)))
+
+  val valid = (
+    zeroLength.isEmpty
+      && wrongMustStartOn.isEmpty && wrongShouldFinishBefore.isEmpty && wrongShouldStartAfter.isEmpty
+      && noResources.isEmpty && wrongPreferredResources.isEmpty && circularDependencies.isEmpty
+    )
 }
 

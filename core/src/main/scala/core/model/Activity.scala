@@ -34,6 +34,12 @@ class Activity(val name: String, val hours: Int, val resourceType: ResourceType,
 
   val cannotBeSharedNorDivided = !conditions.find(_ == CannotBeSharedNorDivided).isEmpty
 
+  val preferredResources = conditions.filter(_.isInstanceOf[PreferredResources]).flatMap(_.asInstanceOf[PreferredResources].resources).toSet
+
+  val mustStartAfter = conditions.filter(_.isInstanceOf[MustStartAfter]).map(_.asInstanceOf[MustStartAfter].activity).toSet
+
+  val justifyFinishWith = conditions.filter(_.isInstanceOf[JustifyFinishWith]).map(_.asInstanceOf[JustifyFinishWith].activity).toSet
+
   val mustStartOn = conditions
     .filter(_.isInstanceOf[MustStartOn])
     .map(_.asInstanceOf[MustStartOn].time) match {
