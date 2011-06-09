@@ -30,7 +30,7 @@ package core.model
 
 import scala.Some
 
-class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val conditions: List[Condition]) {
+class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val conditions: List[Constraint]) {
 
   val cannotBeSharedNorDivided = !conditions.find(_ == CannotBeSharedNorDivided).isEmpty
 

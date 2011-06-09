@@ -28,19 +28,19 @@
 
 package core.model
 
-abstract class Condition
+abstract class Constraint
 
-case object CannotBeSharedNorDivided extends Condition
+case object CannotBeSharedNorDivided extends Constraint
 
-case class PreferredResources(resources: Resource*) extends Condition
+case class PreferredResources(resources: Resource*) extends Constraint
 
-case class MustStartOn(val time: Time) extends Condition
+case class MustStartOn(val time: Time) extends Constraint
 
-case class ShouldStartAfter(val time: Time) extends Condition
+case class ShouldStartAfter(val time: Time) extends Constraint
 
-case class ShouldFinishBefore(val time: Time) extends Condition
+case class ShouldFinishBefore(val time: Time) extends Constraint
 
-abstract class DependsOn(val activity: Activity) extends Condition
+abstract class DependsOn(val activity: Activity) extends Constraint
 
 case class MustStartAfter(override val activity: Activity) extends DependsOn(activity)
 

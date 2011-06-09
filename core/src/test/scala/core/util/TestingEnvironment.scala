@@ -48,14 +48,14 @@ trait TestingEnvironment {
   implicit def wrapActivity(name: String) = new {
     def needs(h: Int) = new {
       def of(resourceType: ResourceType) = new {
-        def where(conditions: Condition*) = new Activity(name, h, resourceType, conditions.toList)
+        def where(conditions: Constraint*) = new Activity(name, h, resourceType, conditions.toList)
 
-        def where(conditions: Array[Condition]) = new Activity(name, h, resourceType, conditions.toList)
+        def where(conditions: Array[Constraint]) = new Activity(name, h, resourceType, conditions.toList)
       }
     }
   }
 
-  val NoConditions: Array[Condition] = Array()
+  val NoConditions: Array[Constraint] = Array()
 
   implicit def wrapResource(resource: Resource) = new {
     def implements(a: Activity) = new {

@@ -36,7 +36,7 @@ import junit.framework.Assert._
 class ActivityTest extends TestCase("Activity") with TestingEnvironment {
 
   def testCannotBeSharedNorDivided() {
-    def cannotBeSharedNorDivided(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).cannotBeSharedNorDivided
+    def cannotBeSharedNorDivided(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).cannotBeSharedNorDivided
 
     assertEquals(true, cannotBeSharedNorDivided(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided))
     assertEquals(true, cannotBeSharedNorDivided(MustStartOn(wed02_0), CannotBeSharedNorDivided))
@@ -46,7 +46,7 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   }
 
   def testPreferredResources() {
-    def preferredResources(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).preferredResources
+    def preferredResources(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).preferredResources
 
     assertEquals(Set(), preferredResources())
     assertEquals(Set(), preferredResources(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided))
@@ -65,7 +65,7 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   }
 
   def testMustStartOn() {
-    def mustStartOn(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).mustStartOn
+    def mustStartOn(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).mustStartOn
 
     assertEquals(Some(wed02_0), mustStartOn(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided, ShouldStartAfter(mon24_0)))
     assertEquals(Some(mon24_0), mustStartOn(MustStartOn(wed02_0), CannotBeSharedNorDivided, MustStartOn(mon24_0)))
@@ -75,7 +75,7 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   }
 
   def testShouldStartAfter() {
-    def shouldStartAfter(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).shouldStartAfter
+    def shouldStartAfter(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).shouldStartAfter
 
     assertEquals(Some(mon24_0), shouldStartAfter(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided, ShouldStartAfter(mon24_0)))
     assertEquals(Some(wed02_0), shouldStartAfter(ShouldStartAfter(wed02_0), CannotBeSharedNorDivided, ShouldStartAfter(mon24_0)))
@@ -85,7 +85,7 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   }
 
   def testShouldFinishBefore() {
-    def shouldFinishBefore(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).shouldFinishBefore
+    def shouldFinishBefore(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).shouldFinishBefore
 
     assertEquals(Some(mon24_0), shouldFinishBefore(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided, ShouldFinishBefore(mon24_0)))
     assertEquals(Some(mon24_0), shouldFinishBefore(ShouldFinishBefore(wed02_0), CannotBeSharedNorDivided, ShouldFinishBefore(mon24_0)))
@@ -95,7 +95,7 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   }
 
   def testBasePlanningTime() {
-    def basePlanningTime(conditions: Condition*) = new Activity("", 1, tester, conditions.toList).basePlanningTime
+    def basePlanningTime(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).basePlanningTime
 
     assertEquals(Some(wed26_0), basePlanningTime(ShouldStartAfter(mon24_0), ShouldFinishBefore(tue25_0), MustStartOn(wed26_0)))
     assertEquals(Some(tue25_0), basePlanningTime(MustStartOn(tue25_0)))
