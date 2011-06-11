@@ -30,31 +30,27 @@ package core.model
 
 import scala.Some
 
-class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val conditions: List[Constraint]) {
+class Activity(val name: String, val hours: Int, val resourceType: ResourceType, val constraints: List[Constraint] = Nil) {
 
-  val cannotBeSharedNorDivided = !conditions.find(_ == CannotBeSharedNorDivided).isEmpty
+  val cannotBeSharedNorDivided = !constraints.find(_ == CannotBeSharedNorDivided).isEmpty
 
-  val preferredResources = conditions.filter(_.isInstanceOf[PreferredResources]).flatMap(_.asInstanceOf[PreferredResources].resources).toSet
+  val preferredResources = constraints.filter(_.isInstanceOf[PreferredResources]).flatMap(_.asInstanceOf[PreferredResources].resources).toSet
 
-  val mustStartAfter = conditions.filter(_.isInstanceOf[MustStartAfter]).map(_.asInstanceOf[MustStartAfter].activity).toSet
-
-  val justifyFinishWith = conditions.filter(_.isInstanceOf[JustifyFinishWith]).map(_.asInstanceOf[JustifyFinishWith].activity).toSet
-
-  val mustStartOn = conditions
+  val mustStartOn = constraints
     .filter(_.isInstanceOf[MustStartOn])
     .map(_.asInstanceOf[MustStartOn].time) match {
     case List() => None
     case notEmptyList => Some(notEmptyList.min)
   }
 
-  val shouldStartAfter = conditions
+  val shouldStartAfter = constraints
     .filter(_.isInstanceOf[ShouldStartAfter])
     .map(_.asInstanceOf[ShouldStartAfter].time) match {
     case List() => None
     case notEmptyList => Some(notEmptyList.max)
   }
 
-  val shouldFinishBefore = conditions
+  val shouldFinishBefore = constraints
     .filter(_.isInstanceOf[ShouldFinishBefore])
     .map(_.asInstanceOf[ShouldFinishBefore].time) match {
     case List() => None

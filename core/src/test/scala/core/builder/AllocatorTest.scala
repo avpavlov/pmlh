@@ -37,18 +37,32 @@ import core.model._
 class AllocatorTest extends TestCase("Allocator") with TestingEnvironment {
 
   val planning1 = "planning 1" needs 32.hours of manager where (ShouldFinishBefore(mon24_0))
-  val implementation1 = "implementation 1" needs 32.hours of developer where (MustStartAfter(planning1))
-  val ongoingTesting1 = "ongoing testing 1" needs 16.hours of tester where (MustStartAfter(planning1), JustifyFinishWith(implementation1))
-  val finalTesting1 = "final testing 1" needs 16.hours of tester where (MustStartAfter(implementation1), MustStartAfter(ongoingTesting1), CannotBeSharedNorDivided)
-  val deployOnUat1 = "deploy on UAT 1" needs 4.hours of developer where (MustStartOn(wed26_0), MustStartAfter(finalTesting1), CannotBeSharedNorDivided)
-  val uat1 = "UAT 1" needs 16.hours of analyst where (MustStartAfter(deployOnUat1))
-  val deployOnProduction1 = "deploy on Production 1" needs 4.hours of developer where (ShouldStartAfter(fri04_0), MustStartAfter(uat1), CannotBeSharedNorDivided)
-  val setupUsers1 = "setup users" needs 16.hours of analyst where (MustStartAfter(deployOnProduction1))
-  val rebuildIndexes1 = "rebuild indexes" needs 16.hours of developer where (MustStartAfter(deployOnProduction1))
-  val notifyCustomer1 = "notify customer" needs 16.hours of manager where (MustStartAfter(setupUsers1), MustStartAfter(rebuildIndexes1))
-  val researchMarket1 = "research market" needs 16.hours of analyst where (NoConditions)
-  val iso27Kcertification1 = "ISO 27K certification" needs 16.hours of manager where (NoConditions)
-  val updateNewsOnsite1 = "update news on site" needs 16.hours of manager where (MustStartAfter(iso27Kcertification1), CannotBeSharedNorDivided)
+  val implementation1 = "implementation 1" needs 32.hours of developer where NoConditions
+  val ongoingTesting1 = "ongoing testing 1" needs 16.hours of tester where NoConditions
+  val finalTesting1 = "final testing 1" needs 16.hours of tester where (CannotBeSharedNorDivided)
+  val deployOnUat1 = "deploy on UAT 1" needs 4.hours of developer where (MustStartOn(wed26_0), CannotBeSharedNorDivided)
+  val uat1 = "UAT 1" needs 16.hours of analyst where NoConditions
+  val deployOnProduction1 = "deploy on Production 1" needs 4.hours of developer where (ShouldStartAfter(fri04_0), CannotBeSharedNorDivided)
+  val setupUsers1 = "setup users" needs 16.hours of analyst where NoConditions
+  val rebuildIndexes1 = "rebuild indexes" needs 16.hours of developer where NoConditions
+  val notifyCustomer1 = "notify customer" needs 16.hours of manager where NoConditions
+  val researchMarket1 = "research market" needs 16.hours of analyst where NoConditions
+  val iso27Kcertification1 = "ISO 27K certification" needs 16.hours of manager where NoConditions
+  val updateNewsOnsite1 = "update news on site" needs 16.hours of manager where (CannotBeSharedNorDivided)
+
+  val a1deps = List(
+    MustStartAfter(implementation1, planning1),
+    MustStartAfter(ongoingTesting1, planning1),
+    JustifyFinishWith(ongoingTesting1, implementation1),
+    MustStartAfter(finalTesting1, implementation1, ongoingTesting1),
+    MustStartAfter(deployOnUat1, finalTesting1),
+    MustStartAfter(uat1, deployOnUat1),
+    MustStartAfter(deployOnProduction1, uat1),
+    MustStartAfter(setupUsers1, deployOnProduction1),
+    MustStartAfter(rebuildIndexes1, deployOnProduction1),
+    MustStartAfter(notifyCustomer1, setupUsers1, rebuildIndexes1),
+    MustStartAfter(updateNewsOnsite1, iso27Kcertification1)
+  )
 
   val milestoneA1 = new Milestone(
     "1.0.0",
@@ -62,12 +76,23 @@ class AllocatorTest extends TestCase("Allocator") with TestingEnvironment {
     )
   )
 
-  val implementation2 = "implementation 2" needs 32.hours of developer where (MustStartAfter(implementation1))
-  val ongoingTesting2 = "ongoing testing 2" needs 16.hours of tester where (MustStartAfter(finalTesting1), JustifyFinishWith(implementation2))
-  val finalTesting2 = "final testing 2" needs 16.hours of tester where (MustStartAfter(implementation2), MustStartAfter(ongoingTesting2), CannotBeSharedNorDivided)
-  val deployOnUat2 = "deploy on UAT 2" needs 4.hours of developer where (MustStartOn(wed02_0), MustStartAfter(finalTesting2), CannotBeSharedNorDivided)
-  val uat2 = "UAT 2" needs 16.hours of analyst where (MustStartAfter(deployOnUat2))
-  val deployOnProduction2 = "deploy on Production 2" needs 4.hours of developer where (ShouldStartAfter(fri04_0), MustStartAfter(uat2), CannotBeSharedNorDivided)
+  val implementation2 = "implementation 2" needs 32.hours of developer where NoConditions
+  val ongoingTesting2 = "ongoing testing 2" needs 16.hours of tester where NoConditions
+  val finalTesting2 = "final testing 2" needs 16.hours of tester where (CannotBeSharedNorDivided)
+  val deployOnUat2 = "deploy on UAT 2" needs 4.hours of developer where (MustStartOn(wed02_0), CannotBeSharedNorDivided)
+  val uat2 = "UAT 2" needs 16.hours of analyst where NoConditions
+  val deployOnProduction2 = "deploy on Production 2" needs 4.hours of developer where (ShouldStartAfter(fri04_0), CannotBeSharedNorDivided)
+
+  val a2deps = List(
+    MustStartAfter(implementation2, implementation1),
+    MustStartAfter(ongoingTesting2, finalTesting1),
+    JustifyFinishWith(ongoingTesting2, implementation2),
+    MustStartAfter(finalTesting2, implementation2, ongoingTesting2),
+    MustStartAfter(deployOnUat2, finalTesting2),
+    MustStartAfter(uat2, deployOnUat2),
+    MustStartAfter(deployOnProduction2, uat2)
+  )
+
 
   val milestoneA2 = new Milestone(
     "2.0.0",
@@ -76,9 +101,14 @@ class AllocatorTest extends TestCase("Allocator") with TestingEnvironment {
     List(testerA_availability, developerC_availability, analystG_availability)
   )
 
-  val implementation3 = "implementation 3" needs 32.hours of developer where (NoConditions)
-  val ongoingTesting3 = "ongoing testing 3" needs 16.hours of tester where (JustifyFinishWith(implementation3))
-  val finalTesting3 = "final testing 3" needs 16.hours of tester where (MustStartAfter(implementation3), MustStartAfter(ongoingTesting3), CannotBeSharedNorDivided)
+  val implementation3 = "implementation 3" needs 32.hours of developer where NoConditions
+  val ongoingTesting3 = "ongoing testing 3" needs 16.hours of tester where NoConditions
+  val finalTesting3 = "final testing 3" needs 16.hours of tester where (CannotBeSharedNorDivided)
+
+  val b1deps = List(
+    JustifyFinishWith(ongoingTesting3, implementation3),
+    MustStartAfter(finalTesting3, implementation3, ongoingTesting3)
+  )
 
   val milestoneB = new Milestone(
     "1.0.0",
@@ -87,9 +117,9 @@ class AllocatorTest extends TestCase("Allocator") with TestingEnvironment {
     List(developerC_availability, developerD_availability, testerA_availability)
   )
 
-  val planA1 = new Plan("Project Alpha", mon24_sun06, List(milestoneA1))
-  val planB = new Plan("Project Beta", mon24_sun06, List(milestoneB))
-  val planAB = new Plan("Both projects", mon24_sun06, List(milestoneA1, milestoneA2, milestoneB))
+  val planA1 = new Plan("Project Alpha", mon24_sun06, List(milestoneA1), a1deps)
+  val planB = new Plan("Project Beta", mon24_sun06, List(milestoneB), b1deps)
+  val planAB = new Plan("Both projects", mon24_sun06, List(milestoneA1, milestoneA2, milestoneB), a1deps ++ a2deps ++ b1deps)
 
   def testOrderedActivities() {
     assertEquals(

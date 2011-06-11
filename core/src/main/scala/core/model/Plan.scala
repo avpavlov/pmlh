@@ -37,22 +37,33 @@ class Milestone(val name: String,
                 val activities: List[Activity],
                 val availableResources: List[AvailableResource])
 
-class Plan(val name: String, val period: Period, val milestones: List[Milestone]) {
+class Plan(val name: String, val period: Period, val milestones: List[Milestone], val dependencies: List[Dependency] = Nil) {
 
   val activities = milestones.flatMap(_.activities)
 
   val availableResources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
+
   val resources = availableResources.map {
     case (a, ar) => a -> ar.map(_.resource).toSet
   }
 
   val predecessors = {
-    def findDeps(a: Activity) = a.conditions.filter(_.isInstanceOf[DependsOn]).map(_.asInstanceOf[DependsOn].activity).toSet
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).flatMap(_.dependsOn).toSet
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val successors = {
     def findDeps(a: Activity) = activities.filter(predecessors(_).contains(a)).toSet
+    activities.map(activity => (activity -> findDeps(activity))).toMap
+  }
+
+  val mustStartAfter = {
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[MustStartAfter]).flatMap(_.dependsOn).toSet
+    activities.map(activity => (activity -> findDeps(activity))).toMap
+  }
+
+  val justifyFinishWith = {
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[JustifyFinishWith]).flatMap(_.dependsOn).toSet
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
@@ -97,7 +108,7 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
     incompatible: a.MustStartAfter(b), b.JustifyFinishWith(a)
     compatible: a.JustifyFinishWith(b), b.JustifyFinishWith(a)
   */
-  val circularDependencies = activities.filter(a => a.mustStartAfter.exists(allLevelPredecessors(_).contains(a)))
+  val circularDependencies = activities.filter(a => mustStartAfter(a).exists(allLevelPredecessors(_).contains(a)))
 
   val valid = (
     zeroLength.isEmpty

@@ -56,14 +56,6 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
     assertEquals(Set(developerC, developerD, developerE), preferredResources(PreferredResources(developerC, developerD), PreferredResources(developerE, developerD)))
   }
 
-  def testMustStartAfter() {
-    fail("to be implemented")
-  }
-
-  def testJustifyFinishWith() {
-    fail("to be implemented")
-  }
-
   def testMustStartOn() {
     def mustStartOn(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).mustStartOn
 

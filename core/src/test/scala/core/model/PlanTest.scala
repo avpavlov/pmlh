@@ -35,11 +35,18 @@ import core.util.TestingEnvironment
 class PlanTest extends TestCase("Plan") with TestingEnvironment {
   def testDependencies {
 
-    val implementation = new Activity("implementation", 32, developer, Nil)
-    val ongoingTesting = new Activity("ongoing testing", 16, tester, List(JustifyFinishWith(implementation)))
-    val finalTesting = new Activity("final testing", 16, tester, List(MustStartAfter(implementation), MustStartAfter(ongoingTesting), CannotBeSharedNorDivided))
-    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0), MustStartAfter(finalTesting), CannotBeSharedNorDivided))
-    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0), MustStartAfter(deployOnUat), CannotBeSharedNorDivided))
+    val implementation = new Activity("implementation", 32, developer)
+    val ongoingTesting = new Activity("ongoing testing", 16, tester)
+    val finalTesting = new Activity("final testing", 16, tester, List(CannotBeSharedNorDivided))
+    val deployOnUat = new Activity("deploy on UAT", 4, developer, List(MustStartOn(wed02_0), CannotBeSharedNorDivided))
+    val deployOnProduction = new Activity("deploy on production", 4, developer, List(MustStartOn(fri04_0), CannotBeSharedNorDivided))
+
+    val m1deps = List(
+      JustifyFinishWith(ongoingTesting, implementation),
+      MustStartAfter(finalTesting, implementation, ongoingTesting),
+      MustStartAfter(deployOnUat, finalTesting),
+      MustStartAfter(deployOnProduction, deployOnUat)
+    )
 
     val milestone1 = new Milestone(
       "1.0.0",
@@ -48,7 +55,11 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
       List(developerC_availability, developerD_availability, testerA_availability)
     )
 
-    val loadTesting = new Activity("load testing", 8, tester, List(MustStartAfter(finalTesting), CannotBeSharedNorDivided))
+    val loadTesting = new Activity("load testing", 8, tester, List(CannotBeSharedNorDivided))
+
+    val m2deps = List(
+      MustStartAfter(loadTesting, finalTesting)
+    )
 
     val milestone2 = new Milestone(
       "performance analysis",
@@ -57,7 +68,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
       List(testerB_availability)
     )
 
-    val plan = new Plan("2 weeks", mon24_sun06, List(milestone1, milestone2))
+    val plan = new Plan("2 weeks", mon24_sun06, List(milestone1, milestone2), m1deps ++ m2deps)
 
     assertEquals(
       List(
@@ -112,6 +123,28 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     assertEquals(
       Map(
         implementation -> Set(),
+        ongoingTesting -> Set(),
+        finalTesting -> Set(ongoingTesting, implementation),
+        deployOnUat -> Set(finalTesting),
+        deployOnProduction -> Set(deployOnUat),
+        loadTesting -> Set(finalTesting)
+      )
+      , plan.mustStartAfter
+    )
+    assertEquals(
+      Map(
+        implementation -> Set(),
+        ongoingTesting -> Set(implementation),
+        finalTesting -> Set(),
+        deployOnUat -> Set(),
+        deployOnProduction -> Set(),
+        loadTesting -> Set()
+      )
+      , plan.justifyFinishWith
+    )
+    assertEquals(
+      Map(
+        implementation -> Set(),
         ongoingTesting -> Set(implementation),
         finalTesting -> Set(ongoingTesting, implementation),
         deployOnUat -> Set(finalTesting, ongoingTesting, implementation),
@@ -131,6 +164,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
       )
       , plan.allLevelSuccessors
     )
+    assertTrue(plan.valid)
   }
 
   def testValidation_wrongMustStartOn {
@@ -151,7 +185,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect1, incorrect2), plan.wrongMustStartOn)
-
+    assertFalse(plan.valid)
   }
 
   def testValidation_wrongShouldFinishBefore {
@@ -172,6 +206,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect1, incorrect2), plan.wrongShouldFinishBefore)
+    assertFalse(plan.valid)
   }
 
   def testValidation_wrongShouldStartAfter {
@@ -192,6 +227,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect), plan.wrongShouldStartAfter)
+    assertFalse(plan.valid)
   }
 
   def testValidation_zeroLength {
@@ -208,6 +244,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect), plan.zeroLength)
+    assertFalse(plan.valid)
   }
 
   def testValidation_noResources {
@@ -224,6 +261,7 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect), plan.noResources)
+    assertFalse(plan.valid)
   }
 
   def testValidation_wrongPreferredResources {
@@ -242,38 +280,53 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
 
     assertEquals(List(incorrect), plan.wrongPreferredResources)
+    assertFalse(plan.valid)
   }
 
   def testValidation_circularDependencies {
-    /*
     val noConditions = "nc" needs 8.hours of tester where NoConditions
-
     val a = "a" needs 8.hours of tester where NoConditions
-    val b = "b" needs 8.hours of tester where (MustStartAfter(a))
-    val c = "c" needs 8.hours of tester where (MustStartAfter(b))
-    a.conditions = List(MustStartAfter(c))
-
+    val b = "b" needs 8.hours of tester where NoConditions
+    val c = "c" needs 8.hours of tester where NoConditions
     val d = "d" needs 8.hours of tester where NoConditions
-    val e = "e" needs 8.hours of tester where (MustStartAfter(d))
-    val f = "f" needs 8.hours of tester where (MustStartAfter(e))
-    d.conditions = List(JustifyFinishWith(f))
-
+    val e = "e" needs 8.hours of tester where NoConditions
+    val f = "f" needs 8.hours of tester where NoConditions
     val g = "g" needs 8.hours of tester where NoConditions
-    val h = "h" needs 8.hours of tester where (JustifyFinishWith(g))
-    g.conditions = List(JustifyFinishWith(h))
+    val h = "h" needs 8.hours of tester where NoConditions
+    val i = "i" needs 8.hours of tester where NoConditions
+    val j = "j" needs 8.hours of tester where NoConditions
+
+    val deps = List(
+      // circular deps
+      MustStartAfter(a, b),
+      MustStartAfter(b, c),
+      MustStartAfter(c, a),
+
+      // circular deps
+      MustStartAfter(e, d),
+      MustStartAfter(f, e),
+      JustifyFinishWith(d, f),
+
+      // circular deps but allowed
+      JustifyFinishWith(g, h),
+      JustifyFinishWith(h, g),
+
+      // no circular deps
+      MustStartAfter(i, noConditions),
+      JustifyFinishWith(j, noConditions)
+    )
 
     val milestone = new Milestone(
       "m",
       null,
-      List(noConditions,a,b,c,d,e,f,g,h),
+      List(noConditions, a, b, c, d, e, f, g, h, i, j),
       List(testerA_availability)
     )
 
-    val plan = new Plan("2 weeks", mon24_sun06, List(milestone))
+    val plan = new Plan("2 weeks", mon24_sun06, List(milestone), deps)
 
-    assertEquals(List(a,b,c,d,e,f),plan.circularDependencies)
-    */
-    fail("to be implemented")
+    assertEquals(List(a, b, c, e, f), plan.circularDependencies)
+    assertFalse(plan.valid)
   }
 
 }

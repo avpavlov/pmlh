@@ -40,9 +40,9 @@ case class ShouldStartAfter(val time: Time) extends Constraint
 
 case class ShouldFinishBefore(val time: Time) extends Constraint
 
-abstract class DependsOn(val activity: Activity) extends Constraint
+abstract class Dependency(val activity: Activity, val dependsOn: Activity*)
 
-case class MustStartAfter(override val activity: Activity) extends DependsOn(activity)
+case class MustStartAfter(override val activity: Activity, override val dependsOn: Activity*) extends Dependency(activity, dependsOn: _*)
 
-case class JustifyFinishWith(override val activity: Activity) extends DependsOn(activity)
+case class JustifyFinishWith(override val activity: Activity, override val dependsOn: Activity*) extends Dependency(activity, dependsOn: _*)
 
