@@ -44,41 +44,41 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
   val availableResources = milestones.flatMap(m => m.activities.map(a => a -> m.availableResources.filter(_.resource.resourceType == a.resourceType))).toMap
 
   val resources = availableResources.map {
-    case (a, ar) => a -> ar.map(_.resource).toSet
+    case (a, ar) => a -> ar.map(_.resource).distinct
   }
 
   val predecessors = {
-    def findDeps(a: Activity) = dependencies.filter(_.activity == a).flatMap(_.dependsOn).toSet
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).flatMap(_.dependsOn).distinct
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val successors = {
-    def findDeps(a: Activity) = activities.filter(predecessors(_).contains(a)).toSet
+    def findDeps(a: Activity) = activities.filter(predecessors(_).contains(a)).distinct
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val mustStartAfter = {
-    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[MustStartAfter]).flatMap(_.dependsOn).toSet
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[MustStartAfter]).flatMap(_.dependsOn).distinct
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val justifyFinishWith = {
-    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[JustifyFinishWith]).flatMap(_.dependsOn).toSet
+    def findDeps(a: Activity) = dependencies.filter(_.activity == a).filter(_.isInstanceOf[JustifyFinishWith]).flatMap(_.dependsOn).distinct
     activities.map(activity => (activity -> findDeps(activity))).toMap
   }
 
   val (allLevelPredecessors, allLevelSuccessors) = {
-    @tailrec def findDeps(immediateDepsMap: Map[Activity, Set[Activity]], nextPortion: Set[Activity], accumulated: Set[Activity]): Set[Activity] = {
+    @tailrec def findDeps(immediateDepsMap: Map[Activity, List[Activity]], nextPortion: List[Activity], accumulated: List[Activity]): List[Activity] = {
       nextPortion.flatMap(immediateDepsMap(_)).filterNot(accumulated.contains) match {
         case empty if empty.isEmpty => accumulated
         case immediateDependencies => findDeps(immediateDepsMap, immediateDependencies, accumulated ++ immediateDependencies)
       }
     }
-    def deps(activity: Activity, immediateDepsMap: Map[Activity, Set[Activity]]) = findDeps(immediateDepsMap, immediateDepsMap(activity), immediateDepsMap(activity))
+    def deps(activity: Activity, immediateDepsMap: Map[Activity, List[Activity]]) = findDeps(immediateDepsMap, immediateDepsMap(activity), immediateDepsMap(activity))
 
     (
-      activities.map(activity => (activity -> deps(activity, predecessors))).toMap,
-      activities.map(activity => (activity -> deps(activity, successors))).toMap
+      activities.map(activity => (activity -> deps(activity, predecessors).distinct)).toMap,
+      activities.map(activity => (activity -> deps(activity, successors).distinct)).toMap
       )
   }
 
@@ -101,7 +101,7 @@ class Plan(val name: String, val period: Period, val milestones: List[Milestone]
 
   val noResources = activities.filter(resources(_).isEmpty)
 
-  val wrongPreferredResources = activities.filterNot(a => a.preferredResources.subsetOf(resources(a)))
+  val wrongPreferredResources = activities.filterNot(a => a.preferredResources.forall(resources(a).contains))
 
   /*
     incompatible: a.MustStartAfter(b), b.MustStartAfter(a)

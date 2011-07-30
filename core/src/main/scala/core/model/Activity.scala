@@ -34,7 +34,7 @@ class Activity(val name: String, val hours: Int, val resourceType: ResourceType,
 
   val cannotBeSharedNorDivided = !constraints.find(_ == CannotBeSharedNorDivided).isEmpty
 
-  val preferredResources = constraints.filter(_.isInstanceOf[PreferredResources]).flatMap(_.asInstanceOf[PreferredResources].resources).toSet
+  val preferredResources = constraints.filter(_.isInstanceOf[PreferredResources]).flatMap(_.asInstanceOf[PreferredResources].resources).distinct
 
   val mustStartOn = constraints
     .filter(_.isInstanceOf[MustStartOn])

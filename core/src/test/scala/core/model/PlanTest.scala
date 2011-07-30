@@ -89,78 +89,78 @@ class PlanTest extends TestCase("Plan") with TestingEnvironment {
     )
     assertEquals(
       Map(
-        implementation -> Set(developerC, developerD),
-        ongoingTesting -> Set(testerA),
-        finalTesting -> Set(testerA),
-        deployOnUat -> Set(developerC, developerD),
-        deployOnProduction -> Set(developerC, developerD),
-        loadTesting -> Set(testerB)
+        implementation -> List(developerC, developerD),
+        ongoingTesting -> List(testerA),
+        finalTesting -> List(testerA),
+        deployOnUat -> List(developerC, developerD),
+        deployOnProduction -> List(developerC, developerD),
+        loadTesting -> List(testerB)
       )
       , plan.resources
     )
     assertEquals(
       Map(
-        implementation -> Set(),
-        ongoingTesting -> Set(implementation),
-        finalTesting -> Set(ongoingTesting, implementation),
-        deployOnUat -> Set(finalTesting),
-        deployOnProduction -> Set(deployOnUat),
-        loadTesting -> Set(finalTesting)
+        implementation -> List(),
+        ongoingTesting -> List(implementation),
+        finalTesting -> List(implementation, ongoingTesting),
+        deployOnUat -> List(finalTesting),
+        deployOnProduction -> List(deployOnUat),
+        loadTesting -> List(finalTesting)
       )
       , plan.predecessors
     )
     assertEquals(
       Map(
-        implementation -> Set(ongoingTesting, finalTesting),
-        ongoingTesting -> Set(finalTesting),
-        finalTesting -> Set(deployOnUat, loadTesting),
-        deployOnUat -> Set(deployOnProduction),
-        deployOnProduction -> Set(),
-        loadTesting -> Set()
+        implementation -> List(ongoingTesting, finalTesting),
+        ongoingTesting -> List(finalTesting),
+        finalTesting -> List(deployOnUat, loadTesting),
+        deployOnUat -> List(deployOnProduction),
+        deployOnProduction -> List(),
+        loadTesting -> List()
       )
       , plan.successors
     )
     assertEquals(
       Map(
-        implementation -> Set(),
-        ongoingTesting -> Set(),
-        finalTesting -> Set(ongoingTesting, implementation),
-        deployOnUat -> Set(finalTesting),
-        deployOnProduction -> Set(deployOnUat),
-        loadTesting -> Set(finalTesting)
+        implementation -> List(),
+        ongoingTesting -> List(),
+        finalTesting -> List(implementation, ongoingTesting),
+        deployOnUat -> List(finalTesting),
+        deployOnProduction -> List(deployOnUat),
+        loadTesting -> List(finalTesting)
       )
       , plan.mustStartAfter
     )
     assertEquals(
       Map(
-        implementation -> Set(),
-        ongoingTesting -> Set(implementation),
-        finalTesting -> Set(),
-        deployOnUat -> Set(),
-        deployOnProduction -> Set(),
-        loadTesting -> Set()
+        implementation -> List(),
+        ongoingTesting -> List(implementation),
+        finalTesting -> List(),
+        deployOnUat -> List(),
+        deployOnProduction -> List(),
+        loadTesting -> List()
       )
       , plan.justifyFinishWith
     )
     assertEquals(
       Map(
-        implementation -> Set(),
-        ongoingTesting -> Set(implementation),
-        finalTesting -> Set(ongoingTesting, implementation),
-        deployOnUat -> Set(finalTesting, ongoingTesting, implementation),
-        deployOnProduction -> Set(deployOnUat, finalTesting, ongoingTesting, implementation),
-        loadTesting -> Set(finalTesting, ongoingTesting, implementation)
+        implementation -> List(),
+        ongoingTesting -> List(implementation),
+        finalTesting -> List(implementation, ongoingTesting),
+        deployOnUat -> List(finalTesting, implementation, ongoingTesting),
+        deployOnProduction -> List(deployOnUat, finalTesting, implementation, ongoingTesting),
+        loadTesting -> List(finalTesting, implementation, ongoingTesting)
       )
       , plan.allLevelPredecessors
     )
     assertEquals(
       Map(
-        implementation -> Set(ongoingTesting, finalTesting, deployOnUat, loadTesting, deployOnProduction),
-        ongoingTesting -> Set(finalTesting, deployOnUat, loadTesting, deployOnProduction),
-        finalTesting -> Set(deployOnUat, loadTesting, deployOnProduction),
-        deployOnUat -> Set(deployOnProduction),
-        deployOnProduction -> Set(),
-        loadTesting -> Set()
+        implementation -> List(ongoingTesting, finalTesting, deployOnUat, loadTesting, deployOnProduction),
+        ongoingTesting -> List(finalTesting, deployOnUat, loadTesting, deployOnProduction),
+        finalTesting -> List(deployOnUat, loadTesting, deployOnProduction),
+        deployOnUat -> List(deployOnProduction),
+        deployOnProduction -> List(),
+        loadTesting -> List()
       )
       , plan.allLevelSuccessors
     )

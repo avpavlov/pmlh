@@ -48,12 +48,12 @@ class ActivityTest extends TestCase("Activity") with TestingEnvironment {
   def testPreferredResources() {
     def preferredResources(conditions: Constraint*) = new Activity("", 1, tester, conditions.toList).preferredResources
 
-    assertEquals(Set(), preferredResources())
-    assertEquals(Set(), preferredResources(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided))
-    assertEquals(Set(), preferredResources(PreferredResources()))
-    assertEquals(Set(developerC), preferredResources(PreferredResources(developerC)))
-    assertEquals(Set(developerC, developerD), preferredResources(PreferredResources(developerC, developerD)))
-    assertEquals(Set(developerC, developerD, developerE), preferredResources(PreferredResources(developerC, developerD), PreferredResources(developerE, developerD)))
+    assertEquals(List(), preferredResources())
+    assertEquals(List(), preferredResources(CannotBeSharedNorDivided, MustStartOn(wed02_0), CannotBeSharedNorDivided))
+    assertEquals(List(), preferredResources(PreferredResources()))
+    assertEquals(List(developerC), preferredResources(PreferredResources(developerC)))
+    assertEquals(List(developerC, developerD), preferredResources(PreferredResources(developerC, developerD)))
+    assertEquals(List(developerC, developerD, developerE), preferredResources(PreferredResources(developerC, developerD), PreferredResources(developerE, developerD)))
   }
 
   def testMustStartOn() {

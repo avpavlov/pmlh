@@ -39,6 +39,16 @@ class Schedule(val allocations: List[Allocation]) {
     .map(_.assigned.period.hours)
     .sum
 
+  def getStartTime(a: Activity): Option[Time] = allocations.filter(_.activity == a) match {
+    case empty if empty.isEmpty => None
+    case notEmpty => Some(notEmpty.map(_.assigned.period.start).min)
+  }
+
+  def getFinishTime(a: Activity): Option[Time] = allocations.filter(_.activity == a) match {
+    case empty if empty.isEmpty => None
+    case notEmpty => Some(notEmpty.map(_.assigned.period.finish).max)
+  }
+
   def getUnallocatedPeriods(r: Resource, p: Period): List[Period] = allocations
     .filter(_.assigned.resource == r)
     .foldLeft(List(p))(
@@ -51,8 +61,8 @@ class Schedule(val allocations: List[Allocation]) {
     .map(allocation => allocation.assigned.period.intersection(p, allocation.assigned.calendar).hours)
     .sum
 
-  def getStartTime(a: Activity) = allocations
-    .filter(_.activity == a)
-    .map(_.assigned.period.start)
-    .min
+  val finishTime = allocations match {
+    case empty if empty.isEmpty => None
+    case _ => Some(allocations.map(_.assigned.period.finish).max)
+  }
 }
